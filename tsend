@@ -1,0 +1,36 @@
+#!/bin/bash
+
+[[ -z ${debug_mode} ]] || set -x
+
+_logfile="/tmp/tsend.$$"
+_botfile="${HOME}/.tsendrc"
+
+[[ -f ${_botfile} ]] && source ${_botfile} || true
+
+while (($#)) ; do
+	case "$1" in
+		-t|--token)
+			TBOT_TOKEN="$1"
+			shift
+		;;
+		-c|--chat_id)
+			TBOT_CHAT_ID="$1"
+			shift
+		;;
+		*)
+			_text="$1"
+			shift
+		;;
+	esac
+done
+
+curl "https://api.telegram.org/bot${TBOT_TOKEN}/sendMessage?chat_id=${TBOT_CHAT_ID}&text=${_text}" 2>/dev/null 1>${_logfile}
+
+if [[ $(jq -r .ok ${_logfile}) == false ]] ; then
+	jq -r .description ${_logfile}
+	_exit_code=1
+fi
+	
+rm -f ${_logfile}
+
+exit ${_exit_code}
