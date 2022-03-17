@@ -7,14 +7,38 @@ _botfile="${HOME}/.tsendrc"
 
 [[ -f ${_botfile} ]] && source ${_botfile} || true
 
+function die(){
+	echo "[error]: $@" >&2
+	rm -f ${_logfile}
+	exit 1
+}
+
 while (($#)) ; do
 	case "$1" in
-		-t|--token)
+		-T|--token)
 			TBOT_TOKEN="$1"
 			shift
 		;;
 		-c|--chat_id)
 			TBOT_CHAT_ID="$1"
+			shift
+		;;
+		-f|--file)
+			shift
+			_file="$1"
+			shift
+		;;
+		-d|--disable-notification)
+			_disable_notification=1
+			shift
+		;;
+		-p|--protect-content)
+			_protect_content=1
+			shift
+		;;
+		-t|--thumb)
+			shift
+			_thumb="$1"
 			shift
 		;;
 		*)
@@ -24,13 +48,37 @@ while (($#)) ; do
 	esac
 done
 
-curl "https://api.telegram.org/bot${TBOT_TOKEN}/sendMessage?chat_id=${TBOT_CHAT_ID}&text=${_text}" 2>/dev/null 1>${_logfile}
+[[ -n "${TBOT_TOKEN}" ]] || die "token is empty. Please use \"-t <token>\" or set TBOT_TOKEN=<token> in ~/.tsendrc"
+[[ -n "${TBOT_CHAT_ID}" ]] || die "chat_id is empty. Please use \"-c <chat_id>\" or set TBOT_CHAT_ID=<chat_id> in ~/.tsendrc"
+
+_url="https://api.telegram.org/bot${TBOT_TOKEN}/"
+
+if [[ -n "${_file}" ]] ; then
+	[[ -f "${_file}" ]] || die "<${_file}> is not exist"
+	_url+="sendDocument?"
+	_url+="chat_id=${TBOT_CHAT_ID}"
+	_url+="${_text:+&caption=\"${_text}\"}"
+	if [[ -n "${_thumb}" ]] ; then
+		[[ -f "${_thumb}" ]] || die "<${_thumb}> is not exist"
+	fi
+else
+	[[ -n "${_text}" ]] || die "empty message"
+	_url+="sendMessage?"
+	_url+="chat_id=${TBOT_CHAT_ID}"
+	_url+="&text=\"${_text}\""
+fi
+
+_url+="${_disable_notification:+&disable_notification=true}"
+_url+="${_protect_content:+&protect_content=true}"
+
+curl \
+	${_file:+-F document=@${_file}} \
+	${_thumb:+-F thumb=@${_thumb}} \
+	"${_url}" \
+	2>/dev/null \
+	1>${_logfile}
 
 if [[ $(jq -r .ok ${_logfile}) == false ]] ; then
-	jq -r .description ${_logfile}
-	_exit_code=1
+	_err="$(jq -r .description ${_logfile})"
+	die "bot return message: ${_err}"
 fi
-	
-rm -f ${_logfile}
-
-exit ${_exit_code}
