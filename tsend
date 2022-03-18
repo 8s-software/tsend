@@ -28,6 +28,22 @@ while (($#)) ; do
 			_file="$1"
 			shift
 		;;
+		-a|--audio)
+			_audio_file=1
+			shift
+		;;
+		-P|--performer)
+			[[ -n ${_audio_file} ]] || die "Use $1 for send audio file only!"
+			shift
+			_performer="$1"
+			shift
+		;;
+		--title)
+			[[ -n ${_audio_file} ]] || die "Use $1 for send audio file only!"
+			shift
+			_title="$1"
+			shift
+		;;
 		-d|--disable-notification)
 			_disable_notification=1
 			shift
@@ -55,24 +71,31 @@ _url="https://api.telegram.org/bot${TBOT_TOKEN}/"
 
 if [[ -n "${_file}" ]] ; then
 	[[ -f "${_file}" ]] || die "<${_file}> is not exist"
-	_url+="sendDocument?"
-	_url+="chat_id=${TBOT_CHAT_ID}"
-	_url+="${_text:+&caption=\"${_text}\"}"
+	# если отправляем аудиофайл
+	if [[ -n "${_audio_file}" ]] ; then
+		_url+="sendAudio?"
+		_url+="${_performer:+performer=${_performer}}"
+		_url+="${_title:+&title=${_title}}"
+		_file_type="audio"
+	else
+		_url+="sendDocument?"
+	fi
+	_url+="${_text:+&caption=${_text}}"
 	if [[ -n "${_thumb}" ]] ; then
 		[[ -f "${_thumb}" ]] || die "<${_thumb}> is not exist"
 	fi
 else
 	[[ -n "${_text}" ]] || die "empty message"
 	_url+="sendMessage?"
-	_url+="chat_id=${TBOT_CHAT_ID}"
 	_url+="&text=\"${_text}\""
 fi
 
+_url+="&chat_id=${TBOT_CHAT_ID}"
 _url+="${_disable_notification:+&disable_notification=true}"
 _url+="${_protect_content:+&protect_content=true}"
 
 curl \
-	${_file:+-F document=@${_file}} \
+	${_file:+-F ${_file_type:-document}=@${_file}} \
 	${_thumb:+-F thumb=@${_thumb}} \
 	"${_url}" \
 	2>/dev/null \
