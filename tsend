@@ -44,6 +44,10 @@ while (($#)) ; do
 			_title="$1"
 			shift
 		;;
+		-F|--photo)
+			_photo_file=1
+			shift
+		;;
 		-d|--disable-notification)
 			_disable_notification=1
 			shift
@@ -77,6 +81,9 @@ if [[ -n "${_file}" ]] ; then
 		_url+="${_performer:+performer=${_performer}}"
 		_url+="${_title:+&title=${_title}}"
 		_file_type="audio"
+	elif [[ -n "${_photo_file}" ]] ; then
+		_url+="sendPhoto?"
+		_file_type="photo"
 	else
 		_url+="sendDocument?"
 	fi
