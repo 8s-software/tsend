@@ -48,6 +48,22 @@ while (($#)) ; do
 			_photo_file=1
 			shift
 		;;
+		-V|--video)
+			_video_file=1
+			shift
+		;;
+		-w|--width)
+			[[ -n "${_video_file}" ]] || die "Use $1 for send video file only!"
+			shift
+			_video_width="$1"
+			shift
+		;;
+		-H|--height)
+			[[ -n "${_video_file}" ]] || die "Use $1 for send video file only!"
+			shift
+			_video_height="$1"
+			shift
+		;;
 		-d|--disable-notification)
 			_disable_notification=1
 			shift
@@ -84,6 +100,11 @@ if [[ -n "${_file}" ]] ; then
 	elif [[ -n "${_photo_file}" ]] ; then
 		_url+="sendPhoto?"
 		_file_type="photo"
+	elif [[ -n "${_video_file}" ]] ; then
+		_url+="sendVideo?"
+		_url+="${_video_width:+width=${_video_width}}"
+		_url+="${_video_height:+&height=${_video_height}}"
+		_file_type="video"
 	else
 		_url+="sendDocument?"
 	fi
