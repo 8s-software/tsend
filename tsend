@@ -8,10 +8,30 @@ declare -a _tbot_params
 
 [[ -f ${_botfile} ]] && source ${_botfile} || true
 
-function die(){
+function _die(){
 	echo "[error]: $@" >&2
 	rm -f ${_logfile}
 	exit 1
+}
+
+function _help(){
+echo "Usage: $(basename $0) [options] ["some text"]
+
+Options:
+	-h|--help			- show this help
+	-T|--token <token>		- specify <token> of telegram bot
+	-C|--chat_id <chat_id>		- Unique identifier for the target chat or username of the target channel (in the format @channelusername)
+	-f|--file <file>		- send <file>
+	-a|--audio			- mark <file> as audio file
+	-P|--performer <text>		- specify performer for audio file
+	-n|--title <text>		- specify title for audio file
+	-F|--photo			- mark <file> as photo
+	-V|--video			- mask <file> as video file
+	-w|--width <width>		- specify video width
+	-H|--height <height>		- specify video height
+	-d|--disable-notification	- Sends the message silently. Users will receive a notification with no sound.
+	-p|--protect-content		- Protects the contents of the sent message from forwarding and saving
+"
 }
 
 while (($#)) ; do
@@ -20,55 +40,55 @@ while (($#)) ; do
 			TBOT_TOKEN="$1"
 			shift
 		;;
-		-c|--chat_id)
+		-C|--chat_id)
 			TBOT_CHAT_ID="$1"
 			shift
 		;;
 		-f|--file)
 			_tbot_command="sendDocument"
 			shift
-			[[ -f "$1" ]] || die "File <$1> is not exist"
+			[[ -f "$1" ]] || _die "File <$1> is not exist"
 			_file="$1"
 			shift
 		;;
 		-a|--audio)
-			[[ -z "${_tbot_command}" || ${_tbot_command} == "sendDocument" ]] || die "The file type is already defined as ${_file_type}"
+			[[ -z "${_tbot_command}" || ${_tbot_command} == "sendDocument" ]] || _die "The file type is already defined as ${_file_type}"
 			_tbot_command="sendAudio"
 			_file_type="audio"
 			shift
 		;;
 		-P|--performer)
-			[[ ${_file_type} == "audio" ]] || die "Use $1 for send audio file only!"
+			[[ ${_file_type} == "audio" ]] || _die "Use $1 for send audio file only!"
 			shift
 			_tbot_params+=( performer="$1" )
 			shift
 		;;
-		--title)
-			[[ ${_file_type} == "audio" ]] || die "Use $1 for send audio file only!"
+		-n|--title)
+			[[ ${_file_type} == "audio" ]] || _die "Use $1 for send audio file only!"
 			shift
 			_tbot_params+=( title="$1" )
 			shift
 		;;
 		-F|--photo)
-			[[ -z "${_tbot_command}" || ${_tbot_command} == "sendDocument" ]] || die "The file type is already defined as ${_file_type}"
+			[[ -z "${_tbot_command}" || ${_tbot_command} == "sendDocument" ]] || _die "The file type is already defined as ${_file_type}"
 			_tbot_command="sendPhoto"
 			_file_type="photo"
 			shift
 		;;
 		-V|--video)
-			[[ -z "${_tbot_command}" || ${_tbot_command} == "sendDocument" ]] || die "The file type is already defined as ${_file_type}"
+			[[ -z "${_tbot_command}" || ${_tbot_command} == "sendDocument" ]] || _die "The file type is already defined as ${_file_type}"
 			_tbot_command="sendVideo"
 			_file_type="video"
 			shift
 		;;
 		-w|--width)
-			[[ ${_file_type} == "video" ]] || die "Use $1 for send video file only!"
+			[[ ${_file_type} == "video" ]] || _die "Use $1 for send video file only!"
 			shift
 			_tbot_params+=( width="$1" )
 			shift
 		;;
 		-H|--height)
-			[[ ${_file_type} == "video" ]] || die "Use $1 for send video file only!"
+			[[ ${_file_type} == "video" ]] || _die "Use $1 for send video file only!"
 			shift
 			_tbot_params+=( height="$1" )
 			shift
@@ -83,7 +103,7 @@ while (($#)) ; do
 		;;
 		-t|--thumb)
 			shift
-			[[ -f "$1" ]] || die "File <$1> is not exist"
+			[[ -f "$1" ]] || _die "File <$1> is not exist"
 			_thumb="$1"
 			shift
 		;;
@@ -98,8 +118,8 @@ while (($#)) ; do
 	esac
 done
 
-[[ -n "${TBOT_TOKEN}" ]] || die "token is empty. Please use \"-t <token>\" or set TBOT_TOKEN=<token> in ~/.tsendrc"
-[[ -n "${TBOT_CHAT_ID}" ]] || die "chat_id is empty. Please use \"-c <chat_id>\" or set TBOT_CHAT_ID=<chat_id> in ~/.tsendrc"
+[[ -n "${TBOT_TOKEN}" ]] || _die "token is empty. Please use \"-t <token>\" or set TBOT_TOKEN=<token> in ~/.tsendrc"
+[[ -n "${TBOT_CHAT_ID}" ]] || _die "chat_id is empty. Please use \"-c <chat_id>\" or set TBOT_CHAT_ID=<chat_id> in ~/.tsendrc"
 
 _url_header="https://api.telegram.org/bot${TBOT_TOKEN}/"
 
@@ -116,5 +136,5 @@ unset IFS
 
 if [[ $(jq -r .ok ${_logfile}) == false ]] ; then
 	_err="$(jq -r .description ${_logfile})"
-	die "bot return message: ${_err}"
+	_die "bot return message: ${_err}"
 fi
