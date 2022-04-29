@@ -15,28 +15,51 @@ function _die(){
 }
 
 function _help(){
-echo "Usage: $(basename $0) [options] ["some text"]
+echo "Usage: $(basename $0) [options] [\"text\"]
 
 Options:
 	-h|--help			- show this help
-	-T|--token <token>		- specify <token> of telegram bot
-	-C|--chat_id <chat_id>		- Unique identifier for the target chat or username of the target channel (in the format @channelusername)
-	-f|--file <file>		- send <file>
-	-a|--audio			- mark <file> as audio file
+	-K|--token <token>		- specify <token> of telegram bot
+	-C|--chat_id <chat_id>		- unique identifier for the target
+					  chat or username of the target
+					  channel (in the format @channelusername)
+	-d|--document <file>		- send document <file>
+	-a|--audio <file>		- send audio file <file>
 	-P|--performer <text>		- specify performer for audio file
-	-n|--title <text>		- specify title for audio file
-	-F|--photo			- mark <file> as photo
-	-V|--video			- mask <file> as video file
-	-w|--width <width>		- specify video width
+	-T|--title <text>		- specify title for audio file
+	-p|--photo <file>		- send photo <file>
+	-v|--video <file>		- send video <file>
+	-W|--width <width>		- specify video width
 	-H|--height <height>		- specify video height
-	-d|--disable-notification	- Sends the message silently. Users will receive a notification with no sound.
-	-p|--protect-content		- Protects the contents of the sent message from forwarding and saving
+	-dn|--disable-notification	- sends the message silently. Users will
+					  receive a notification with no sound.
+	-pc|--protect-content		- protects the contents of the sent message
+					  from forwarding and saving
 "
+}
+
+function _setfile(){
+	[[ -n "$1" && -z "${_file_type}" ]] || _die "you can only send one type of file"
+	[[ -n "$2" ]] || _die "you must specify the file to send"
+	[[ -f "$2" ]] || _die "file <$2> is not exist"
+	_file_type="$1"
+	_file="$2"
+	case "${_file_type}" in
+		document)	_tbot_command="sendDocument"	;;
+		audio)		_tbot_command="sendAudio"	;;
+		video)		_tbot_command="sendVideo"	;;
+		photo)		_tbot_command="sendPhoto"	;;
+		*)		_die "Unknown type of file"	;;
+	esac
 }
 
 while (($#)) ; do
 	case "$1" in
-		-T|--token)
+		-h|--help)
+			_help
+			exit
+		;;
+		-K|--token)
 			TBOT_TOKEN="$1"
 			shift
 		;;
@@ -44,66 +67,61 @@ while (($#)) ; do
 			TBOT_CHAT_ID="$1"
 			shift
 		;;
-		-f|--file)
-			_tbot_command="sendDocument"
+		-d|--document)
 			shift
-			[[ -f "$1" ]] || _die "File <$1> is not exist"
-			_file="$1"
+			_setfile document "$1"
 			shift
 		;;
 		-a|--audio)
-			[[ -z "${_tbot_command}" || ${_tbot_command} == "sendDocument" ]] || _die "The file type is already defined as ${_file_type}"
-			_tbot_command="sendAudio"
-			_file_type="audio"
+			shift
+			_setfile audio "$1"
 			shift
 		;;
 		-P|--performer)
-			[[ ${_file_type} == "audio" ]] || _die "Use $1 for send audio file only!"
+			[[ ${_file_type} == "audio" ]] || _die "use $1 for send audio file only!"
 			shift
 			_tbot_params+=( performer="$1" )
 			shift
 		;;
-		-n|--title)
-			[[ ${_file_type} == "audio" ]] || _die "Use $1 for send audio file only!"
+		-T|--title)
+			[[ ${_file_type} == "audio" ]] || _die "use $1 for send audio file only!"
 			shift
 			_tbot_params+=( title="$1" )
 			shift
 		;;
-		-F|--photo)
-			[[ -z "${_tbot_command}" || ${_tbot_command} == "sendDocument" ]] || _die "The file type is already defined as ${_file_type}"
-			_tbot_command="sendPhoto"
-			_file_type="photo"
+		-p|--photo)
+			shift
+			_setfile photo "$1"
 			shift
 		;;
-		-V|--video)
-			[[ -z "${_tbot_command}" || ${_tbot_command} == "sendDocument" ]] || _die "The file type is already defined as ${_file_type}"
-			_tbot_command="sendVideo"
-			_file_type="video"
+		-v|--video)
+			shift
+			_setfile video "$1"
 			shift
 		;;
-		-w|--width)
-			[[ ${_file_type} == "video" ]] || _die "Use $1 for send video file only!"
+		-W|--width)
+			[[ ${_file_type} == "video" ]] || _die "use $1 for send video file only!"
 			shift
 			_tbot_params+=( width="$1" )
 			shift
 		;;
 		-H|--height)
-			[[ ${_file_type} == "video" ]] || _die "Use $1 for send video file only!"
+			[[ ${_file_type} == "video" ]] || _die "use $1 for send video file only!"
 			shift
 			_tbot_params+=( height="$1" )
 			shift
 		;;
-		-d|--disable-notification)
+		-dn|--disable-notification)
 			_tbot_params+=( disable_notification=true )
 			shift
 		;;
-		-p|--protect-content)
+		-pc|--protect-content)
 			_tbot_params+=( protect_content=true )
 			shift
 		;;
 		-t|--thumb)
 			shift
-			[[ -f "$1" ]] || _die "File <$1> is not exist"
+			[[ -f "$1" ]] || _die "file <$1> is not exist"
 			_thumb="$1"
 			shift
 		;;
