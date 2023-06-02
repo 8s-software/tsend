@@ -19,14 +19,14 @@ echo "Usage: $(basename $0) [options] [\"text\"]
 
 Options:
 	-h|--help			- show this help
-	-K|--token <token>		- specify <token> of telegram bot
+	-T|--token <token>		- specify <token> of telegram bot
 	-C|--chat_id <chat_id>		- unique identifier for the target
 					  chat or username of the target
 					  channel (in the format @channelusername)
 	-d|--document <file>		- send document <file>
 	-a|--audio <file>		- send audio file <file>
 	-P|--performer <text>		- specify performer for audio file
-	-T|--title <text>		- specify title for audio file
+	-t|--title <text>		- specify title for audio file
 	-p|--photo <file>		- send photo <file>
 	-v|--video <file>		- send video <file>
 	-W|--width <width>		- specify video width
@@ -59,7 +59,7 @@ while (($#)) ; do
 			_help
 			exit
 		;;
-		-K|--token)
+		-T|--token)
 			TBOT_TOKEN="$1"
 			shift
 		;;
@@ -83,7 +83,7 @@ while (($#)) ; do
 			_tbot_params+=( performer="$1" )
 			shift
 		;;
-		-T|--title)
+		-t|--title)
 			[[ ${_file_type} == "audio" ]] || _die "use $1 for send audio file only!"
 			shift
 			_tbot_params+=( title="$1" )
