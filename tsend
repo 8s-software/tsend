@@ -149,7 +149,7 @@ export IFS='&'
 curl \
 	${_file:+-F${_file_type:-document}=@${_file}} \
 	${_thumb:+-Fthumb=@${_thumb}} \
-	"${_url_header}${_tbot_command:-sendMessage}?${_tbot_params[*]}" \
+	"${_url_header}${_tbot_command:-sendMessage}?${_tbot_params[*]// /%20}" \
 	2>/dev/null \
 	1>${_logfile}
 unset IFS
