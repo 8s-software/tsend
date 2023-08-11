@@ -60,10 +60,12 @@ while (($#)) ; do
 			exit
 		;;
 		-T|--token)
+			shift
 			TBOT_TOKEN="$1"
 			shift
 		;;
 		-C|--chat_id)
+			shift
 			TBOT_CHAT_ID="$1"
 			shift
 		;;
