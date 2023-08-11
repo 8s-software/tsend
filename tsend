@@ -82,13 +82,13 @@ while (($#)) ; do
 		-P|--performer)
 			[[ ${_file_type} == "audio" ]] || _die "use $1 for send audio file only!"
 			shift
-			_tbot_params+=( performer="$1" )
+			_tbot_params+=( --data-urlencode performer="$1" )
 			shift
 		;;
 		-t|--title)
 			[[ ${_file_type} == "audio" ]] || _die "use $1 for send audio file only!"
 			shift
-			_tbot_params+=( title="$1" )
+			_tbot_params+=( --data-urlencode title="$1" )
 			shift
 		;;
 		-p|--photo)
@@ -104,21 +104,21 @@ while (($#)) ; do
 		-W|--width)
 			[[ ${_file_type} == "video" ]] || _die "use $1 for send video file only!"
 			shift
-			_tbot_params+=( width="$1" )
+			_tbot_params+=( --data-urlencode width="$1" )
 			shift
 		;;
 		-H|--height)
 			[[ ${_file_type} == "video" ]] || _die "use $1 for send video file only!"
 			shift
-			_tbot_params+=( height="$1" )
+			_tbot_params+=( --data-urlencode height="$1" )
 			shift
 		;;
 		-dn|--disable-notification)
-			_tbot_params+=( disable_notification=true )
+			_tbot_params+=( --data-urlencode disable_notification=true )
 			shift
 		;;
 		-pc|--protect-content)
-			_tbot_params+=( protect_content=true )
+			_tbot_params+=( --data-urlencode protect_content=true )
 			shift
 		;;
 		-t|--thumb)
@@ -129,9 +129,9 @@ while (($#)) ; do
 		;;
 		*)
 			if [[ -n "${_tbot_command}" ]] ; then
-				_tbot_params+=( "caption=$1" )
+				_tbot_params+=( --data-urlencode "caption=$1" )
 			else
-				_tbot_params+=( "text=$1" )
+				_tbot_params+=( --data-urlencode "text=$1" )
 			fi
 			shift
 		;;
@@ -143,16 +143,15 @@ done
 
 _url_header="https://api.telegram.org/bot${TBOT_TOKEN}/"
 
-_tbot_params+=( chat_id=${TBOT_CHAT_ID} )
+_tbot_params+=( --data-urlencode chat_id=${TBOT_CHAT_ID} )
 
-export IFS='&'
 curl \
 	${_file:+-F${_file_type:-document}=@${_file}} \
 	${_thumb:+-Fthumb=@${_thumb}} \
-	"${_url_header}${_tbot_command:-sendMessage}?${_tbot_params[*]// /%20}" \
+	"${_url_header}${_tbot_command:-sendMessage}" \
+	"${_tbot_params[@]}" \
 	2>/dev/null \
 	1>${_logfile}
-unset IFS
 
 if [[ $(jq -r .ok ${_logfile}) == false ]] ; then
 	_err="$(jq -r .description ${_logfile})"
