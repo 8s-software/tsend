@@ -17,6 +17,12 @@ declare -a _tbot_params
 
 [[ -f ${_botfile} ]] && source ${_botfile} || true
 
+function _clean(){
+	rm -f "${_logfile}"
+}
+
+trap _clean EXIT ERR TERM
+
 function _die(){
 	echo "[error]: $@" >&2
 	rm -f ${_logfile}
