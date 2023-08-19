@@ -1,5 +1,14 @@
 #!/bin/bash
 
+#
+# https://core.telegram.org/bots/api			- основная статья
+# https://core.telegram.org/bots/api#sendmessage	- метод sendMessage
+# https://core.telegram.org/bots/api#sendphoto		- метод sendPhoto
+# https://core.telegram.org/bots/api#sendaudio		- метод sendAudio
+# https://core.telegram.org/bots/api#senddocument	- метод sendDocument
+# https://core.telegram.org/bots/api#sendvideo		- метод sendVideo
+#
+
 [[ -z ${debug_mode} ]] || set -x
 
 _logfile="/tmp/tsend.$$"
@@ -14,23 +23,28 @@ function _die(){
 	exit 1
 }
 
+function _warn(){
+	echo "[warning]: $@" >&2
+}
+
 function _help(){
-echo "Usage: $(basename $0) [options] [\"text\"]
+echo "Usage: $(basename $0) [options] [\"message\"]
 
 Options:
 	-h|--help			- show this help
+	-B|--bot-server <url>		- use bot server (default https://api.telegram.org)
 	-T|--token <token>		- specify <token> of telegram bot
 	-C|--chat_id <chat_id>		- unique identifier for the target
 					  chat or username of the target
 					  channel (in the format @channelusername)
 	-d|--document <file>		- send document <file>
 	-a|--audio <file>		- send audio file <file>
-	-P|--performer <text>		- specify performer for audio file
-	-t|--title <text>		- specify title for audio file
+		-P|--performer <text>	- specify performer for audio file
+		-t|--title <text>	- specify title for audio file
 	-p|--photo <file>		- send photo <file>
 	-v|--video <file>		- send video <file>
-	-W|--width <width>		- specify video width
-	-H|--height <height>		- specify video height
+		-W|--width <width>	- specify video width
+		-H|--height <height>	- specify video height
 	-dn|--disable-notification	- sends the message silently. Users will
 					  receive a notification with no sound.
 	-pc|--protect-content		- protects the contents of the sent message
@@ -38,26 +52,41 @@ Options:
 "
 }
 
+#
+# $1 - тип файла
+# $2 - файл
 function _setfile(){
 	[[ -n "$1" && -z "${_file_type}" ]] || _die "you can only send one type of file"
 	[[ -n "$2" ]] || _die "you must specify the file to send"
 	[[ -f "$2" ]] || _die "file <$2> is not exist"
-	_file_type="$1"
-	_file="$2"
-	case "${_file_type}" in
-		document)	_tbot_command="sendDocument"	;;
-		audio)		_tbot_command="sendAudio"	;;
-		video)		_tbot_command="sendVideo"	;;
-		photo)		_tbot_command="sendPhoto"	;;
-		*)		_die "Unknown type of file"	;;
+	case "$1" in
+		document|audio|video|photo)
+			_tbot_command="send$1"
+		;;
+		*)
+			_die "Unknown type of file"
+		;;
 	esac
+	_tbot_params+=( -F$1=@"$2" )
 }
+
+if [[ -p /dev/stdin ]] ; then
+	_stdin=yes
+	while read line ; do
+		_message+=( "${line}" )
+	done
+fi
 
 while (($#)) ; do
 	case "$1" in
 		-h|--help)
 			_help
 			exit
+		;;
+		-B|--bot-server)
+			shift
+			TBOT_SERVER="$1"
+			shift
 		;;
 		-T|--token)
 			shift
@@ -82,13 +111,13 @@ while (($#)) ; do
 		-P|--performer)
 			[[ ${_file_type} == "audio" ]] || _die "use $1 for send audio file only!"
 			shift
-			_tbot_params+=( --data-urlencode performer="$1" )
+			_tbot_params+=( -Fperformer="$1" )
 			shift
 		;;
 		-t|--title)
 			[[ ${_file_type} == "audio" ]] || _die "use $1 for send audio file only!"
 			shift
-			_tbot_params+=( --data-urlencode title="$1" )
+			_tbot_params+=( -Ftitle="$1" )
 			shift
 		;;
 		-p|--photo)
@@ -104,51 +133,66 @@ while (($#)) ; do
 		-W|--width)
 			[[ ${_file_type} == "video" ]] || _die "use $1 for send video file only!"
 			shift
-			_tbot_params+=( --data-urlencode width="$1" )
+			_tbot_params+=( -Fwidth="$1" )
 			shift
 		;;
 		-H|--height)
 			[[ ${_file_type} == "video" ]] || _die "use $1 for send video file only!"
 			shift
-			_tbot_params+=( --data-urlencode height="$1" )
+			_tbot_params+=( -Fheight="$1" )
 			shift
 		;;
 		-dn|--disable-notification)
-			_tbot_params+=( --data-urlencode disable_notification=true )
+			_tbot_params+=( -Fdisable_notification=true )
 			shift
 		;;
 		-pc|--protect-content)
-			_tbot_params+=( --data-urlencode protect_content=true )
+			_tbot_params+=( -Fprotect_content=true )
 			shift
 		;;
 		-t|--thumb)
 			shift
 			[[ -f "$1" ]] || _die "file <$1> is not exist"
-			_thumb="$1"
+			_tbot_params+=( -Fthumbnail=@"$1" )
 			shift
 		;;
+		-*)
+			_die "Unknown option <$1>"
+		;;
 		*)
-			if [[ -n "${_tbot_command}" ]] ; then
-				_tbot_params+=( --data-urlencode "caption=$1" )
+			if [[ -z ${_stdin} ]] ; then
+				_message+=( "$1" )
 			else
-				_tbot_params+=( --data-urlencode "text=$1" )
+				_die "Unknown option <$1>"
 			fi
 			shift
 		;;
 	esac
 done
 
-[[ -n "${TBOT_TOKEN}" ]] || _die "token is empty. Please use \"-t <token>\" or set TBOT_TOKEN=<token> in ~/.tsendrc"
-[[ -n "${TBOT_CHAT_ID}" ]] || _die "chat_id is empty. Please use \"-c <chat_id>\" or set TBOT_CHAT_ID=<chat_id> in ~/.tsendrc"
+IFS=$'\n'
+if [[ ${_tbot_command:=sendmessage} == sendmessage ]] ; then
+	_tbot_params+=( -Ftext="${_message[*]}" )
+else
+	_tbot_params+=( -Fcaption="${_message[*]}" )
+fi
+unset IFS
 
-_url_header="https://api.telegram.org/bot${TBOT_TOKEN}/"
 
-_tbot_params+=( --data-urlencode chat_id=${TBOT_CHAT_ID} )
+if [[ -n "${TBOT_TOKEN}" ]] ; then
+	_url_header="${TBOT_SERVER:=https://api.telegram.org}/bot${TBOT_TOKEN}/"
+else
+	_die "token is empty. Please use \"-t <token>\" or set TBOT_TOKEN=<token> in ~/.tsendrc"
+fi
+
+if [[ -n "${TBOT_CHAT_ID}" ]] ; then
+	_tbot_params+=( -Fchat_id="${TBOT_CHAT_ID}" )
+else
+	_die "chat_id is empty. Please use \"-c <chat_id>\" or set TBOT_CHAT_ID=<chat_id> in ~/.tsendrc"
+fi
 
 curl \
-	${_file:+-F${_file_type:-document}=@${_file}} \
-	${_thumb:+-Fthumb=@${_thumb}} \
-	"${_url_header}${_tbot_command:-sendMessage}" \
+	"${_url_header}${_tbot_command}" \
 	"${_tbot_params[@]}" \
 	2>/dev/null \
 	1>${_logfile}
