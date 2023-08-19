@@ -171,10 +171,12 @@ while (($#)) ; do
 done
 
 IFS=$'\n'
-if [[ ${_tbot_command:=sendmessage} == sendmessage ]] ; then
-	_tbot_params+=( -Ftext="${_message[*]}" )
-else
-	_tbot_params+=( -Fcaption="${_message[*]}" )
+if [[ ${#_message[@]} -gt 0 ]] ; then
+	if [[ ${_tbot_command:=sendmessage} == sendmessage ]] ; then
+		_tbot_params+=( -Ftext="${_message[*]}" )
+	else
+		_tbot_params+=( -Fcaption="${_message[*]}" )
+	fi
 fi
 unset IFS
 
@@ -192,7 +194,7 @@ else
 fi
 
 curl \
-	"${_url_header}${_tbot_command}" \
+	"${_url_header}${_tbot_command:=sendmessage}" \
 	"${_tbot_params[@]}" \
 	2>/dev/null \
 	1>${_logfile}
