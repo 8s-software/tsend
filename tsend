@@ -38,6 +38,7 @@ echo "Usage: $(basename $0) [options] [\"message\"]
 
 Options:
 	-h|--help			- show this help
+	-V|--version			- show version
 	-B|--bot-server <url>		- use bot server (default https://api.telegram.org)
 	-T|--token <token>		- specify <token> of telegram bot
 	-C|--chat_id <chat_id>		- unique identifier for the target
@@ -87,6 +88,10 @@ while (($#)) ; do
 	case "$1" in
 		-h|--help)
 			_help
+			exit
+		;;
+		-V|--version)
+			echo "@VERSION@"
 			exit
 		;;
 		-B|--bot-server)
