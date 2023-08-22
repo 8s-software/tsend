@@ -1,0 +1,104 @@
+#!/bin/bash
+
+#
+# функция автодополнения tsend
+#
+function _tsend(){
+	local cur prev comp_type opts=() filter=()
+	# монопольные опции
+	local monopoly_opts=(
+		--help --version
+	)
+	# общие опции
+	local common_opts=(
+		--bot-server
+		--token
+		--chat_id
+		--disable-notification
+		--protect-content
+	)
+	# опции отправки файлов
+	local file_opts=(
+		--audio
+		--video
+		--photo
+		--document
+	)
+	# опции отправки аудио-файлов
+	local audio_opts=(
+		--performer
+		--title
+	)
+	# опции отправки видео-файлов
+	local video_opts=(
+		--width
+		--height
+	)
+
+	# текущая вводимая опция
+	cur="${COMP_WORDS[COMP_CWORD]}"
+	# предыдущая введённая опция
+	prev="${COMP_WORDS[COMP_CWORD-1]}"
+
+	case "${prev}" in
+		# дополнять нечего
+		-B|--bot-server|-T|--token|-C|--chat-id|-h|--help|-V|--version)
+			return 0
+		;;
+		-d|--document)
+			local IFS=$'\n'
+			compopt -o filenames
+			COMPREPLY=($(compgen -f -- ${cur}))
+			return 0
+		;;
+		-a|--audio)
+			local IFS=$'\n'
+			compopt -o filenames
+			COMPREPLY=($(compgen -f -- ${cur}))
+			return 0
+		;;
+		-p|--photo)
+			local IFS=$'\n'
+			compopt -o filenames
+			COMPREPLY=($(compgen -f -- ${cur}))
+			return 0
+		;;
+		-v|--video)
+			local IFS=$'\n'
+			compopt -o filenames
+			COMPREPLY=($(compgen -f -- ${cur}))
+			return 0
+		;;
+		tsend)
+			# опции --version и --help не имеет смысла дополнять,
+			# если они не первые и единственные
+			if [[ ${#COMP_WORDS[@]} -le 2 ]] ; then
+				opts+=( ${monopoly_opts[@]} )
+			fi
+			opts+=( ${common_opts[@]} ${file_opts[@]})
+			COMPREPLY=($(compgen -W "${opts[*]}" -- ${cur}))
+			return 0
+		;;
+		*)
+			filter=( "${COMP_WORDS[*]}" )
+			opts+=( ${common_opts[@]} )
+			case "${COMP_WORDS[@]}" in
+				*--audio*)
+					opts+=( ${audio_opts[@]} )
+					filter+=( ${file_opts[@]} )
+				;;
+				*--video*)
+					opts+=( ${video_opts[@]} )
+					filter+=( ${file_opts[@]} )
+				;;
+				*--documents*|*--photo*)
+					filter+=( ${file_opts[@]} )
+				;;
+			esac
+			COMPREPLY=($(compgen -W "${opts[*]}" -X "@($(export IFS='|' ; echo "${filter[*]}"))" -- ${cur}))
+			return 0
+		;;
+	esac
+}
+
+complete -F _tsend tsend
