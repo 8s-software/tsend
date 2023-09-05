@@ -13,7 +13,7 @@ function _tsend(){
 	local common_opts=(
 		--bot-server
 		--token
-		--chat_id
+		--chat-id
 		--disable-notification
 		--protect-content
 	)
@@ -42,11 +42,22 @@ function _tsend(){
 
 	case "${prev}" in
 		# дополнять нечего
-		-B|--bot-server|-C|--chat-id|-h|--help|-V|--version)
+		-B|--bot-server|-h|--help|-V|--version)
+			return 0
+		;;
+		-C|--chat-id)
+			opts=($(
+				if [[ -f ~/.tsendrc ]] ; then
+					declare -A TBOT_CHAT_ID
+					source ~/.tsendrc
+					echo ${!TBOT_CHAT_ID[@]}
+				fi
+			))
+			COMPREPLY=($(compgen -W "${opts[*]}" -- ${cur}))
 			return 0
 		;;
 		-T|--token)
-			opts+=($(
+			opts=($(
 				if [[ -f ~/.tsendrc ]] ; then
 					declare -A TBOT_TOKEN
 					source ~/.tsendrc
@@ -54,6 +65,7 @@ function _tsend(){
 				fi
 			))
 			COMPREPLY=($(compgen -W "${opts[*]}" -- ${cur}))
+			return 0
 		;;
 		-d|--document)
 			local IFS=$'\n'
