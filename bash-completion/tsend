@@ -42,8 +42,18 @@ function _tsend(){
 
 	case "${prev}" in
 		# дополнять нечего
-		-B|--bot-server|-T|--token|-C|--chat-id|-h|--help|-V|--version)
+		-B|--bot-server|-C|--chat-id|-h|--help|-V|--version)
 			return 0
+		;;
+		-T|--token)
+			opts+=($(
+				if [[ -f ~/.tsendrc ]] ; then
+					declare -A TBOT_TOKEN
+					source ~/.tsendrc
+					echo ${!TBOT_TOKEN[@]}
+				fi
+			))
+			COMPREPLY=($(compgen -W "${opts[*]}" -- ${cur}))
 		;;
 		-d|--document)
 			local IFS=$'\n'

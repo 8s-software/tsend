@@ -14,6 +14,7 @@
 _logfile="/tmp/tsend.$$"
 _botfile="${HOME}/.tsendrc"
 declare -a _tbot_params
+declare -A TBOT_TOKEN
 
 [[ -f ${_botfile} ]] && source ${_botfile} || true
 
@@ -24,7 +25,7 @@ function _clean(){
 trap _clean EXIT ERR TERM
 
 function _die(){
-	echo "[error]: $@" >&2
+	[[ -z $@ ]] || echo "[error]: $@" >&2
 	rm -f ${_logfile}
 	exit 1
 }
@@ -40,7 +41,7 @@ Options:
 	-h|--help			- show this help
 	-V|--version			- show version
 	-B|--bot-server <url>		- use bot server (default https://api.telegram.org)
-	-T|--token <token>		- specify <token> of telegram bot
+	-T|--token <token>		- specify <token> or <token_id> of telegram bot
 	-C|--chat_id <chat_id>		- unique identifier for the target
 					  chat or username of the target
 					  channel (in the format @channelusername)
@@ -77,6 +78,29 @@ function _setfile(){
 	_tbot_params+=( -F$1=@"$2" )
 }
 
+#
+# функция выдаёт токен бота
+#
+function _get_token(){
+	local _result
+	# если параметр $1 не передан или пуст, то используем
+	# знчение по-умолчанию
+	if [[ -z "$1" ]] ; then
+		_result="${TBOT_TOKEN[default]}"
+		[[ -n "${_result}" ]] || \
+		_die "token is empty. Please use \"-t <token>\" or set TBOT_TOKEN[default]=<token> in ~/.tsendrc"
+	# если в $1 содержится токен, то возвращаем его
+	elif [[ $1 =~ [0-9]{8,10}:[-_A-Za-z0-9]{35} ]] ; then
+		_result="$1"
+	else
+	# иначе считаем, что это id токена
+		_result="${TBOT_TOKEN[$1]}"
+		[[ -n "${_result}" ]] || \
+			_die "Field TBOT_TOKEN[$1] is not defined in ~/.tsendrc"
+	fi
+	echo "${_result}"
+}
+
 if [[ -p /dev/stdin ]] ; then
 	_stdin=yes
 	while read line ; do
@@ -101,7 +125,7 @@ while (($#)) ; do
 		;;
 		-T|--token)
 			shift
-			TBOT_TOKEN="$1"
+			_token="$1"
 			shift
 		;;
 		-C|--chat_id)
@@ -191,12 +215,7 @@ if [[ ${#_message[@]} -gt 0 ]] ; then
 fi
 unset IFS
 
-
-if [[ -n "${TBOT_TOKEN}" ]] ; then
-	_url_header="${TBOT_SERVER:=https://api.telegram.org}/bot${TBOT_TOKEN}/"
-else
-	_die "token is empty. Please use \"-t <token>\" or set TBOT_TOKEN=<token> in ~/.tsendrc"
-fi
+_url_header="${TBOT_SERVER:=https://api.telegram.org}/bot$(_get_token ${_token})/" || _die
 
 if [[ -n "${TBOT_CHAT_ID}" ]] ; then
 	_tbot_params+=( -Fchat_id="${TBOT_CHAT_ID}" )
