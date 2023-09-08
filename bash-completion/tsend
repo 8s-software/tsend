@@ -7,7 +7,7 @@ function _tsend(){
 	local cur prev comp_type opts=() filter=()
 	# монопольные опции
 	local monopoly_opts=(
-		--help --version
+		--help --version --init
 	)
 	# общие опции
 	local common_opts=(
@@ -42,7 +42,7 @@ function _tsend(){
 
 	case "${prev}" in
 		# дополнять нечего
-		-B|--bot-server|-h|--help|-V|--version)
+		-B|--bot-server|-h|--help|-V|--version|-i|--init)
 			return 0
 		;;
 		-C|--chat-id)

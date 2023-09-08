@@ -57,6 +57,7 @@ Options:
 					  receive a notification with no sound.
 	-pc|--protect-content		- protects the contents of the sent message
 					  from forwarding and saving
+	-i|--init			- init ~/.tsendrc
 "
 }
 
@@ -120,6 +121,34 @@ function _get_chat_id(){
 	echo "${_result}"
 }
 
+function _init_rc(){
+	if [[ -f "${HOME}/.tsendrc" ]] ;then
+		local _answer
+		read -p "~/.tsendrc already exist. Rewrite? [No/yes]: " _answer
+		[[ x${_answer:-no} == x[Yy][Ee][Ss] ]] || return 0
+	fi
+	cat>${HOME}/.tsendrc<<-EOF
+#
+# ID чата для отправки сообщений по-умолчанию.
+# можно получить с помощью @getmyid_bot (https://t.me/getmyid_bot)
+# TBOT_CHAT_ID[default]="8748572093"
+TBOT_CHAT_ID[default]=""
+
+# дополнительные чаты
+# TBOT_CHAT_ID[chat_1]=""
+# TBOT_CHAT_ID[example]=""
+
+# токен бота, который будет использоваться по-умолчанию
+# можно создать или узнать с помощью @BotFather (https://t.me/BotFather)
+# TBOT_TOKEN[default]="9023840920:AAF6bCr8zcFZ6aAosAMZglXI0cL7C8KUVu4"
+TBOT_TOKEN[default]=
+
+# массив дополнительных токенов
+# TBOT_TOKEN[notify]="4857239457:AAF6bCr8zcFZ6aAosAmzGlXI0cL7C8KUVu4"
+# TBOT_TOKEN[auth]="9843058035:AAFeZmxWS3BHZ_kIfwzF3Hov5yFPEMJZt3Y"
+EOF
+}
+
 if [[ -p /dev/stdin ]] ; then
 	_stdin=yes
 	while read line ; do
@@ -131,6 +160,10 @@ while (($#)) ; do
 	case "$1" in
 		-h|--help)
 			_help
+			exit
+		;;
+		-i|--init)
+			_init_rc
 			exit
 		;;
 		-V|--version)
