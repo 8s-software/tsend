@@ -53,9 +53,9 @@ Options:
 	-v|--video <file>		- send video <file>
 		-W|--width <width>	- specify video width
 		-H|--height <height>	- specify video height
-	-dn|--disable-notification	- sends the message silently. Users will
+	-D|--disable-notification	- sends the message silently. Users will
 					  receive a notification with no sound.
-	-pc|--protect-content		- protects the contents of the sent message
+	-c|--protect-content		- protects the contents of the sent message
 					  from forwarding and saving
 	-i|--init			- init ~/.tsendrc
 "
@@ -156,6 +156,13 @@ if [[ -p /dev/stdin ]] ; then
 	done
 fi
 
+options=$(getopt \
+-l "help,version,bot-server:,token:,chat-id:,document:,audio:,performer:,title:,photo:,video:,width:,height:,disable-notification,protect-content,init" \
+-o "hVB:T:C:d:a:P:t:p:v:W:H:Dc" \
+-- "$@")
+
+eval set -- "${options}"
+
 while (($#)) ; do
 	case "$1" in
 		-h|--help)
@@ -229,11 +236,11 @@ while (($#)) ; do
 			_tbot_params+=( -Fheight="$1" )
 			shift
 		;;
-		-dn|--disable-notification)
+		-D|--disable-notification)
 			_tbot_params+=( -Fdisable_notification=true )
 			shift
 		;;
-		-pc|--protect-content)
+		-c|--protect-content)
 			_tbot_params+=( -Fprotect_content=true )
 			shift
 		;;
@@ -241,6 +248,9 @@ while (($#)) ; do
 			shift
 			[[ -f "$1" ]] || _die "file <$1> is not exist"
 			_tbot_params+=( -Fthumbnail=@"$1" )
+			shift
+		;;
+		--)
 			shift
 		;;
 		-*)
