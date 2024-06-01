@@ -111,7 +111,7 @@ function _get_chat_id(){
 		_result="${TBOT_CHAT_ID[default]}"
 		[[ -n "${_result}" ]] || \
 			_die "chat_id is empty. Please use \"-C <chat_id>\" or set TBOT_CHAT_ID[default]=<chat_id> in ~/.tsendrc"
-	elif [[ $1 =~ [0-9]\+ ]] ; then
+	elif [[ $1 =~ [0-9]+ ]] ; then
 		_result="$1"
 	else
 		_result="${TBOT_CHAT_ID[$1]}"
