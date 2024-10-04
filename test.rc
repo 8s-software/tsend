@@ -1,0 +1,6 @@
+
+source /etc/profile
+export PATH=${PWD}/scripts:${PATH}
+for f in bash-completion/* ; do
+	source ${f}
+done
