@@ -1,9 +1,9 @@
-#!/bin/bash
+# tsend completion                                          -*- shell-script -*-
 
 #
 # функция автодополнения tsend
 #
-function _tsend(){
+function __tsend(){
 	local cur prev comp_type opts=() filter=()
 	# монопольные опции
 	local monopoly_opts=(
@@ -121,6 +121,6 @@ function _tsend(){
 			return 0
 		;;
 	esac
-}
+} && complete -F __tsend tsend
 
-complete -F _tsend tsend
+# ex: filetype=sh
