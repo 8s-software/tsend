@@ -1,0 +1,9 @@
+#!/usr/bin/make -f
+
+DESTDIR     = $(CURDIR)/debian/cppcheck
+
+override_dh_auto_build:
+	dh_auto_build --buildsystem=qmake -- INSTALL_PREFIX=/usr
+
+%:
+	dh $@ --parallel
