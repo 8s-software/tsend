@@ -1,5 +1,5 @@
-tsend (0.2.0-1) stable; urgency=normal
+tsend (0.2.0-1) stable; urgency=medium
 
-  * Initial release. (Closes: #XXXXXX)
+  * Initial release. (Closes: #31770)
 
- -- Богаченков Вячеслав <bvy@nita.ru>  Fri, 06 Dec 2024 11:54:08 +0300
+ -- Богаченков Вячеслав <bvy@nita.ru>  Thu, 06 Mar 2025 11:33:00 +0300

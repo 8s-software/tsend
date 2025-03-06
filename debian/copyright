@@ -1,0 +1,7 @@
+Format: http://www.debian.org/doc/packaging-manuals/copyright-format/1.0/
+Upstream-Name: tsend
+Source: http://gitserver.nita.ru/DevOps/scripts/tsend/
+
+Files: *
+Copyright 1990-2024, Vyacheslav Bogachenkov <bvy@nita.ru> for NITA LLC
+License: Proprietary

@@ -1,8 +1,8 @@
 
 TEMPLATE = aux
-VERSION = 0.1.1
+VERSION = 0.2.0
 
-isEmpty(DESTDIR):DESTDIR = $${PWD}/output
+isEmpty(DESTDIR):DESTDIR = .
 
 isEmpty(INSTALL_PREFIX):INSTALL_PREFIX = /usr/local
 
