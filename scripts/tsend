@@ -1,0 +1,293 @@
+#!/bin/bash
+
+#
+# https://core.telegram.org/bots/api			- основная статья
+# https://core.telegram.org/bots/api#sendmessage	- метод sendMessage
+# https://core.telegram.org/bots/api#sendphoto		- метод sendPhoto
+# https://core.telegram.org/bots/api#sendaudio		- метод sendAudio
+# https://core.telegram.org/bots/api#senddocument	- метод sendDocument
+# https://core.telegram.org/bots/api#sendvideo		- метод sendVideo
+#
+
+[[ -z ${debug_mode} ]] || set -x
+
+_logfile="/tmp/tsend.$$"
+_botfile="${HOME}/.tsendrc"
+declare -a _tbot_params
+declare -A TBOT_TOKEN TBOT_CHAT_ID
+
+[[ -f ${_botfile} ]] && source ${_botfile} || true
+
+function _clean(){
+	rm -f "${_logfile}"
+}
+
+trap _clean EXIT ERR TERM
+
+function _die(){
+	[[ -z $@ ]] || echo "[error]: $@" >&2
+	rm -f ${_logfile}
+	exit 1
+}
+
+function _warn(){
+	echo "[warning]: $@" >&2
+}
+
+function _help(){
+echo "Usage: $(basename $0) [options] [\"message\"]
+
+Options:
+	-h|--help			- show this help
+	-V|--version			- show version
+	-B|--bot-server <url>		- use bot server (default https://api.telegram.org)
+	-T|--token <token>		- specify <token> or <token_id> of telegram bot
+	-C|--chat-id <chat_id>		- unique identifier for the target
+					  chat or username of the target
+					  channel (in the format @channelusername)
+	-d|--document <file>		- send document <file>
+	-a|--audio <file>		- send audio file <file>
+		-P|--performer <text>	- specify performer for audio file
+		-t|--title <text>	- specify title for audio file
+	-p|--photo <file>		- send photo <file>
+	-v|--video <file>		- send video <file>
+		-W|--width <width>	- specify video width
+		-H|--height <height>	- specify video height
+	-D|--disable-notification	- sends the message silently. Users will
+					  receive a notification with no sound.
+	-c|--protect-content		- protects the contents of the sent message
+					  from forwarding and saving
+	-i|--init			- init ~/.tsendrc
+"
+}
+
+#
+# $1 - тип файла
+# $2 - файл
+function _setfile(){
+	[[ -n "$1" && -z "${_file_type}" ]] || _die "you can only send one type of file"
+	[[ -n "$2" ]] || _die "you must specify the file to send"
+	[[ -f "$2" ]] || _die "file <$2> is not exist"
+	case "$1" in
+		document|audio|video|photo)
+			_tbot_command="send$1"
+		;;
+		*)
+			_die "Unknown type of file"
+		;;
+	esac
+	_tbot_params+=( -F$1=@"$2" )
+}
+
+#
+# функция выдаёт токен бота
+#
+function _get_token(){
+	local _result
+	# если параметр $1 не передан или пуст, то используем
+	# знчение по-умолчанию
+	if [[ -z "$1" ]] ; then
+		_result="${TBOT_TOKEN[default]}"
+		[[ -n "${_result}" ]] || \
+		_die "token is empty. Please use \"-T <token>\" or set TBOT_TOKEN[default]=<token> in ~/.tsendrc"
+	# если в $1 содержится токен, то возвращаем его
+	elif [[ $1 =~ [0-9]{8,10}:[-_A-Za-z0-9]{35} ]] ; then
+		_result="$1"
+	else
+	# иначе считаем, что это id токена
+		_result="${TBOT_TOKEN[$1]}"
+		[[ -n "${_result}" ]] || \
+			_die "Field TBOT_TOKEN[$1] is not defined in ~/.tsendrc"
+	fi
+	echo "${_result}"
+}
+
+#
+# функция выдаёт chat_id
+#
+function _get_chat_id(){
+	local _result
+	if [[ -z "$1" ]] ; then
+		_result="${TBOT_CHAT_ID[default]}"
+		[[ -n "${_result}" ]] || \
+			_die "chat_id is empty. Please use \"-C <chat_id>\" or set TBOT_CHAT_ID[default]=<chat_id> in ~/.tsendrc"
+	elif [[ $1 =~ [0-9]+ ]] ; then
+		_result="$1"
+	else
+		_result="${TBOT_CHAT_ID[$1]}"
+		[[ -n "${_result}" ]] || \
+			_die "Field TBOT_CHAT_ID[$1] is not defined in ~/.tsendrc"
+	fi
+	echo "${_result}"
+}
+
+function _init_rc(){
+	if [[ -f "${HOME}/.tsendrc" ]] ;then
+		local _answer
+		read -p "~/.tsendrc already exist. Rewrite? [No/yes]: " _answer
+		[[ x${_answer:-no} == x[Yy][Ee][Ss] ]] || return 0
+	fi
+	cat>${HOME}/.tsendrc<<-EOF
+#
+# ID чата для отправки сообщений по-умолчанию.
+# можно получить с помощью @getmyid_bot (https://t.me/getmyid_bot)
+# TBOT_CHAT_ID[default]="8748572093"
+TBOT_CHAT_ID[default]=""
+
+# дополнительные чаты
+# TBOT_CHAT_ID[chat_1]=""
+# TBOT_CHAT_ID[example]=""
+
+# токен бота, который будет использоваться по-умолчанию
+# можно создать или узнать с помощью @BotFather (https://t.me/BotFather)
+# TBOT_TOKEN[default]="9023840920:AAF6bCr8zcFZ6aAosAMZglXI0cL7C8KUVu4"
+TBOT_TOKEN[default]=
+
+# массив дополнительных токенов
+# TBOT_TOKEN[notify]="4857239457:AAF6bCr8zcFZ6aAosAmzGlXI0cL7C8KUVu4"
+# TBOT_TOKEN[auth]="9843058035:AAFeZmxWS3BHZ_kIfwzF3Hov5yFPEMJZt3Y"
+EOF
+}
+
+if [[ -p /dev/stdin ]] ; then
+	_stdin=yes
+	while read line ; do
+		_message+=( "${line}" )
+	done
+fi
+
+options=$(getopt \
+-l "help,version,bot-server:,token:,chat-id:,document:,audio:,performer:,title:,photo:,video:,width:,height:,disable-notification,protect-content,init" \
+-o "hVB:T:C:d:a:P:t:p:v:W:H:Dc" \
+-- "$@")
+
+eval set -- "${options}"
+
+while (($#)) ; do
+	case "$1" in
+		-h|--help)
+			_help
+			exit
+		;;
+		-i|--init)
+			_init_rc
+			exit
+		;;
+		-V|--version)
+			echo "@VERSION@"
+			exit
+		;;
+		-B|--bot-server)
+			shift
+			TBOT_SERVER="$1"
+			shift
+		;;
+		-T|--token)
+			shift
+			_token="$1"
+			shift
+		;;
+		-C|--chat-id)
+			shift
+			_chat_id="$1"
+			shift
+		;;
+		-d|--document)
+			shift
+			_setfile document "$1"
+			shift
+		;;
+		-a|--audio)
+			shift
+			_setfile audio "$1"
+			shift
+		;;
+		-P|--performer)
+			[[ ${_file_type} == "audio" ]] || _die "use $1 for send audio file only!"
+			shift
+			_tbot_params+=( -Fperformer="$1" )
+			shift
+		;;
+		-t|--title)
+			[[ ${_file_type} == "audio" ]] || _die "use $1 for send audio file only!"
+			shift
+			_tbot_params+=( -Ftitle="$1" )
+			shift
+		;;
+		-p|--photo)
+			shift
+			_setfile photo "$1"
+			shift
+		;;
+		-v|--video)
+			shift
+			_setfile video "$1"
+			shift
+		;;
+		-W|--width)
+			[[ ${_file_type} == "video" ]] || _die "use $1 for send video file only!"
+			shift
+			_tbot_params+=( -Fwidth="$1" )
+			shift
+		;;
+		-H|--height)
+			[[ ${_file_type} == "video" ]] || _die "use $1 for send video file only!"
+			shift
+			_tbot_params+=( -Fheight="$1" )
+			shift
+		;;
+		-D|--disable-notification)
+			_tbot_params+=( -Fdisable_notification=true )
+			shift
+		;;
+		-c|--protect-content)
+			_tbot_params+=( -Fprotect_content=true )
+			shift
+		;;
+		-t|--thumb)
+			shift
+			[[ -f "$1" ]] || _die "file <$1> is not exist"
+			_tbot_params+=( -Fthumbnail=@"$1" )
+			shift
+		;;
+		--)
+			shift
+		;;
+		-*)
+			_die "Unknown option <$1>"
+		;;
+		*)
+			if [[ -z ${_stdin} ]] ; then
+				_message+=( "$1" )
+			else
+				_die "Unknown option <$1>"
+			fi
+			shift
+		;;
+	esac
+done
+
+IFS=$'\n'
+if [[ ${#_message[@]} -gt 0 ]] ; then
+	if [[ ${_tbot_command:=sendmessage} == sendmessage ]] ; then
+		_tbot_params+=( -Ftext="${_message[*]}" )
+	else
+		_tbot_params+=( -Fcaption="${_message[*]}" )
+	fi
+fi
+unset IFS
+
+_url_header="${TBOT_SERVER:=https://api.telegram.org}/bot$(_get_token ${_token})/" || _die
+
+_tbot_params+=( -Fchat_id="$(_get_chat_id ${_chat_id})" ) || _die
+
+curl \
+	"${_url_header}${_tbot_command:=sendmessage}" \
+	"${_tbot_params[@]}" \
+	2>/dev/null \
+	1>${_logfile}
+
+if [[ $(jq -r .ok ${_logfile}) == false ]] ; then
+	_err="$(jq -r .description ${_logfile})"
+	_die "bot return message: ${_err}"
+fi
