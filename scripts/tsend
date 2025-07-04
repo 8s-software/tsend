@@ -35,7 +35,12 @@ function _warn(){
 }
 
 function _help(){
-echo "Usage: $(basename $0) [options] [\"message\"]
+echo "\
+Usage:
+	${0##*/} [options] [\"message\"]
+
+Description:
+	Send telegram messages from command line.
 
 Options:
 	-h|--help			- show this help

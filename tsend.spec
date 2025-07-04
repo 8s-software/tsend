@@ -4,7 +4,7 @@
 %endif
 
 Name:		tsend
-Version:	0.3.0
+Version:	0.3.1
 Release:	1%{?dist}
 Summary:	Sending telegram messages from command line
 
@@ -52,6 +52,9 @@ make install INSTALL_ROOT=%{buildroot}
 
 
 %changelog
+* Fri Jul  4 2025 Богаченков Вячеслав <bvy@nita.ru> - 0.3.1-1
+- Дополнен вывод справки
+
 * Fri Jun 20 2025 Богаченков Вячеслав <bvy@nita.ru> - 0.3.0-1
 - переход на сборку rpm из проекта (#32436)
 
