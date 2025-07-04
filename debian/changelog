@@ -1,6 +1,7 @@
-tsend (0.3.1-1) UNRELEASED; urgency=medium
+tsend (0.3.1-1) stable; urgency=medium
 
   * Дополнен вывод справки
+  * Раскрашен вывод справки (#32529)
 
  -- Богаченков Вячеслав <bvy@nita.ru>  Fri, 04 Jul 2025 11:06:20 +0300
 

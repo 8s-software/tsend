@@ -35,34 +35,38 @@ function _warn(){
 }
 
 function _help(){
-echo "\
-Usage:
-	${0##*/} [options] [\"message\"]
+	local r='\e[0m'
+	local by='\e[1;33m'
+	local bw='\e[1;37m'
+	local b='\e[1;34m'
+	echo -e "\
+${by}Usage:
+	${bw}${0##*/} [options] [\"message\"]
 
-Description:
-	Send telegram messages from command line.
+${by}Description:
+	${bw}Send telegram messages from command line.
 
-Options:
-	-h|--help			- show this help
-	-V|--version			- show version
-	-B|--bot-server <url>		- use bot server (default https://api.telegram.org)
-	-T|--token <token>		- specify <token> or <token_id> of telegram bot
-	-C|--chat-id <chat_id>		- unique identifier for the target
+${by}Options:
+	${bw}-h|--help${r}			- show this help
+	${bw}-V|--version${r}			- show version
+	${bw}-B|--bot-server ${b}<url>${r}		- use bot server (default https://api.telegram.org)
+	${bw}-T|--token ${b}<token>${r}		- specify <token> or <token_id> of telegram bot
+	${bw}-C|--chat-id ${b}<chat_id>${r}		- unique identifier for the target
 					  chat or username of the target
 					  channel (in the format @channelusername)
-	-d|--document <file>		- send document <file>
-	-a|--audio <file>		- send audio file <file>
-		-P|--performer <text>	- specify performer for audio file
-		-t|--title <text>	- specify title for audio file
-	-p|--photo <file>		- send photo <file>
-	-v|--video <file>		- send video <file>
-		-W|--width <width>	- specify video width
-		-H|--height <height>	- specify video height
-	-D|--disable-notification	- sends the message silently. Users will
+	${bw}-d|--document ${b}<file>${r}		- send document <file>
+	${bw}-a|--audio ${b}<file>${r}		- send audio file <file>
+		${bw}-P|--performer ${b}<text>${r}	- specify performer for audio file
+		${bw}-t|--title ${b}<text>${r}	- specify title for audio file
+	${bw}-p|--photo ${b}<file>${r}		- send photo <file>
+	${bw}-v|--video ${b}<file>${r}		- send video <file>
+		${bw}-W|--width ${b}<width>${r}	- specify video width
+		${bw}-H|--height ${b}<height>${r}	- specify video height
+	${bw}-D|--disable-notification${r}	- sends the message silently. Users will
 					  receive a notification with no sound.
-	-c|--protect-content		- protects the contents of the sent message
+	${bw}-c|--protect-content${r}		- protects the contents of the sent message
 					  from forwarding and saving
-	-i|--init			- init ~/.tsendrc
+	${bw}-i|--init${r}			- init ~/.tsendrc
 "
 }
 
