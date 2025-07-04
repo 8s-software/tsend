@@ -1,6 +1,7 @@
 
 TEMPLATE = aux
-VERSION = 0.2.0
+
+exists(description.txt):VERSION = $$replace($$list($$fromfile(description.txt,VERSION)),-[0-9]+$,)
 
 isEmpty(DESTDIR):DESTDIR = .
 
