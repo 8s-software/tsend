@@ -1,15 +1,6 @@
 #!/usr/bin/make -f
 
 INSTALL_ROOT = $(CURDIR)/debian/tsend
-OLD_PATH     := $(PATH)
-PATH         = $(PWD):$(OLD_PATH)
-QMAKEFEATURES =
-
-QT_SELECT=4
-
-override_dh_auto_configure:
-	[ -l qmake ] || ln -fsv $(shell which qtchooser) qmake
-	dh_auto_configure --buildsystem=qmake -- INSTALL_PREFIX=/usr
 
 %:
-	dh $@ --parallel --with bash-completion --buildsystem=qmake
+	dh $@ --parallel --with bash-completion --buildsystem=cmake
