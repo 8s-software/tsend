@@ -16,6 +16,7 @@ BuildArch:	noarch
 
 BuildRequires:	pkgconfig(bash-completion)
 BuildRequires:	cmake
+BuildRequires:	cmake-rpm-macros
 
 Requires:	bash
 Requires:	jq
