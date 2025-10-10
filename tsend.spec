@@ -25,8 +25,9 @@ Requires:	curl
 %description
 Sending telegram messages from command line.
 
-%{?__cmake_in_source_build:%global	__cmake_in_source_build	%{nil}}
+%{?__cmake_in_source_build:%global __cmake_in_source_build %{nil}}
 %{!?_vpath_builddir:%global _vpath_builddir %{_vendor}-%{_target_os}-build}
+%{!?_vpath_srcdir:%global _vpath_srcdir .}
 
 %prep
 :
