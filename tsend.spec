@@ -4,7 +4,7 @@
 %endif
 
 Name:		tsend
-Version:	0.3.1
+Version:	0.4.0
 Release:	1%{?dist}
 Summary:	Sending telegram messages from command line
 
@@ -15,11 +15,8 @@ Source0:	http://gitserver/DevOps/scripts/tsend/snapshot/%{name}-%{version}.tar.b
 BuildArch:	noarch
 
 BuildRequires:	pkgconfig(bash-completion)
-%if 0%{?redos}
-BuildRequires:	qt4-devel
-%else
-BuildRequires:	qt48-devel
-%endif
+BuildRequires:	cmake
+BuildRequires:	cmake-rpm-macros
 
 Requires:	bash
 Requires:	jq
@@ -28,21 +25,19 @@ Requires:	curl
 %description
 Sending telegram messages from command line.
 
+%{?__cmake_in_source_build:%global __cmake_in_source_build %{nil}}
+%{!?_vpath_builddir:%global _vpath_builddir %{_vendor}-%{_target_os}-build}
+%{!?_vpath_srcdir:%global _vpath_srcdir .}
+
 %prep
 :
 
 %build
-unset QMAKEFEATURES
-%if 0%{?redos}
-%_qt4_qmake \
-%else
-%_qt48_qmake \
-%endif
-	INSTALL_PREFIX=%{_prefix}
+%cmake
 
 %install
 rm -rf %{buildroot}
-make install INSTALL_ROOT=%{buildroot}
+%cmake_install
 
 
 %files
@@ -52,6 +47,9 @@ make install INSTALL_ROOT=%{buildroot}
 
 
 %changelog
+* Sat Oct  4 2025 Богаченков Вячеслав <bvy@nita.ru> - 0.4.0-1
+- проект переведён на cmake
+
 * Fri Jul  4 2025 Богаченков Вячеслав <bvy@nita.ru> - 0.3.1-1
 - Дополнен вывод справки
 - Раскрашен вывод справки (#32529)
