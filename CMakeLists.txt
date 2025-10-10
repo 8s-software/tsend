@@ -1,5 +1,9 @@
 cmake_minimum_required(VERSION 2.8)
 
+if(${CMAKE_BINARY_DIR} EQUAL ${CMAKE_SOURCE_DIR})
+	message(FATAL_ERROR "IN_SOURCE build is not support!!!")
+endif()
+
 project(tsend)
 
 include(GNUInstallDirs)
@@ -26,7 +30,7 @@ file(WRITE ${CMAKE_BINARY_DIR}/scripts/tsend "${TSEND_BODY_OUT}")
 
 install(PROGRAMS
 	${CMAKE_BINARY_DIR}/scripts/tsend
-	DESTINATION ${CMAKE_INSTALL_FULL_BINDIR}
+	DESTINATION ${CMAKE_INSTALL_BINDIR}
 )
 install(FILES
 	${CMAKE_SOURCE_DIR}/bash-completion/tsend
