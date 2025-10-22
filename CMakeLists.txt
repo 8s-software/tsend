@@ -6,6 +6,15 @@ endif()
 
 project(tsend)
 
+if(EXISTS ${CMAKE_SOURCE_DIR}/description.txt)
+	file(STRINGS
+		${CMAKE_SOURCE_DIR}/description.txt
+		TSEND_VERSION
+		REGEX [0-9]+\\.[0-9]+\\.[0-9]+
+	)
+	string(REGEX MATCH [0-9]+\\.[0-9]+\\.[0-9]+ TSEND_VERSION "${TSEND_VERSION}")
+endif(EXISTS ${CMAKE_SOURCE_DIR}/description.txt)
+
 include(GNUInstallDirs)
 include(FindPkgConfig)
 
@@ -25,7 +34,7 @@ endif(NOT DEFINED COMPLETIONS_DIR)
 
 
 file(READ ${CMAKE_SOURCE_DIR}/scripts/tsend TSEND_BODY_IN)
-string(REPLACE "@VERSION@" "${CMAKE_PROJECT_VERSION}" TSEND_BODY_OUT "${TSEND_BODY_IN}")
+string(REPLACE "@VERSION@" "${TSEND_VERSION}" TSEND_BODY_OUT "${TSEND_BODY_IN}")
 file(WRITE ${CMAKE_BINARY_DIR}/scripts/tsend "${TSEND_BODY_OUT}")
 
 install(PROGRAMS
