@@ -4,9 +4,10 @@
 %endif
 
 Name:		tsend
-Version:	0.4.0
+Version:	0.4.1
 Release:	1%{?dist}
 Summary:	Sending telegram messages from command line
+Group:		Applications/Communications
 
 License:	Freely redistributable without restriction
 URL:		http://mediawiki.nita.ru/tsend
@@ -47,6 +48,9 @@ rm -rf %{buildroot}
 
 
 %changelog
+* Wed Oct 22 2025 Богаченков Вячеслав <bvy@nita.ru> - 0.4.1-1
+- исправлено отображение версии (#33365)
+
 * Sat Oct  4 2025 Богаченков Вячеслав <bvy@nita.ru> - 0.4.0-1
 - проект переведён на cmake
 
