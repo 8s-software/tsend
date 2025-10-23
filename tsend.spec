@@ -4,7 +4,7 @@
 %endif
 
 Name:		tsend
-Version:	0.4.1
+Version:	0.4.2
 Release:	1%{?dist}
 Summary:	Sending telegram messages from command line
 Group:		Applications/Communications
@@ -22,6 +22,9 @@ BuildRequires:	cmake-rpm-macros
 Requires:	bash
 Requires:	jq
 Requires:	curl
+Requires:	bash-completion
+Requires:	util-linux
+Requires:	coreutils
 
 %description
 Sending telegram messages from command line.
@@ -48,6 +51,9 @@ rm -rf %{buildroot}
 
 
 %changelog
+* Thu Oct 23 2025 Богаченков Вячеслав <bvy@nita.ru> - 0.4.2-1
+- добавлены недостающие зависимости (#33384)
+
 * Wed Oct 22 2025 Богаченков Вячеслав <bvy@nita.ru> - 0.4.1-1
 - исправлено отображение версии (#33365)
 
