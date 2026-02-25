@@ -9,6 +9,7 @@ Homepage: http://redmine.nita.ru/projects/tsend/issues
 
 Package: tsend
 Architecture: all
-Depends: ${misc:Depends}, curl (>= 7), jq (>= 1.5), util-linux (>= 2.20), coreutils (>= 8)
+Depends: ${misc:Depends}, curl (>= 7), jq (>= 1.5), util-linux (>= 2.20),
+ coreutils (>= 8), c2e
 Description: Sending telegram messages from command line
  tsend is a script for sending messages to Telegram from the command line.
