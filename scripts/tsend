@@ -188,6 +188,9 @@ TBOT_TOKEN[default]=
 # массив дополнительных токенов
 # TBOT_TOKEN[notify]="4857239457:AAF6bCr8zcFZ6aAosAmzGlXI0cL7C8KUVu4"
 # TBOT_TOKEN[auth]="9843058035:AAFeZmxWS3BHZ_kIfwzF3Hov5yFPEMJZt3Y"
+
+# socks5 прокси
+# TBOT_SOCKS5="ip:port"
 EOF
 }
 
@@ -329,6 +332,7 @@ _url_header="${TBOT_SERVER:=https://api.telegram.org}/bot$(_get_token ${_token})
 _tbot_params+=( -Fchat_id="$(_get_chat_id ${_chat_id})" ) || die
 
 curl \
+	${TBOT_SOCKS5:+--socks5 "${TBOT_SOCKS5}"} \
 	"${_url_header}${_tbot_command:=sendmessage}" \
 	"${_tbot_params[@]}" \
 	2>/dev/null \

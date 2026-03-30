@@ -4,7 +4,7 @@
 %endif
 
 Name:		tsend
-Version:	0.4.4
+Version:	0.5.0
 Release:	1%{?dist}
 Summary:	Sending telegram messages from command line
 Group:		Applications/Communications
@@ -52,6 +52,9 @@ rm -rf %{buildroot}
 
 
 %changelog
+* Mon Mar 30 2026 Богаченков Вячеслав <bvy@nita.ru> - 0.5.0-1
+- добавлена поддержка отправки сообщений через SOCKS5 прокси (#34383)
+
 * Wed Feb 25 2026 Богаченков Вячеслав <bvy@nita.ru> - 0.4.4-1
 - добавлена зависимость от c2e (#34186)
 
