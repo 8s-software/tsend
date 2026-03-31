@@ -1,4 +1,4 @@
-# tsend completion                                          -*- shell-script -*-
+# tsend completion						-*- shell-script -*-
 
 #
 # функция автодополнения tsend
@@ -16,6 +16,7 @@ function __tsend(){
 		--chat-id
 		--disable-notification
 		--protect-content
+		--socks5
 	)
 	# опции отправки файлов
 	local file_opts=(
@@ -42,7 +43,7 @@ function __tsend(){
 
 	case "${prev}" in
 		# дополнять нечего
-		-B|--bot-server|-h|--help|-V|--version|-i|--init)
+		-B|--bot-server|-h|--help|-V|--version|-i|--init|-s|--socks5)
 			return 0
 		;;
 		-C|--chat-id)
