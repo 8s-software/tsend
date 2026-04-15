@@ -208,14 +208,13 @@ fi
 # обрабатываем параметры командной строки
 short_opts="hVB:T:C:d:a:P:t:p:v:W:H:Dcs:"
 long_opts="help,version,bot-server:,token:,chat-id:,document:,audio:,performer:,title:,photo:,video:,width:,height:,disable-notification,protect-content,init,socks5:"
-opts=$(getopt -u -o ":${short_opts}" -l "${long_opts}" -- "$@" 2>/dev/null)
+getopt -u -o ":${short_opts}" -l "${long_opts}" -- "$@" 2>/dev/null | set --
 if [[ $? -gt 0 ]] ; then
 	IFS=$'\n'
 	errmsg=($(LANG=en getopt -u -o "${short_opts}" -l "${long_opts}" -- "$@" 2>&1 1>&-))
 	unset IFS
 	die "${errmsg[@]#getopt: }"
 fi
-set -- ${opts}
 
 while (($#)) ; do
 	case "$1" in
