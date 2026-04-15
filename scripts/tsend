@@ -28,11 +28,11 @@ trap _clean EXIT ERR TERM
 
 function die(){
 	if [[ -t 2 ]] ; then
-                local -A c=(
-                        [reset]=$(c2e --reset)
-                        [error]=$(c2e --foreground red)
-                )
-        fi
+		local -A c=(
+			[reset]=$(c2e --reset)
+			[error]=$(c2e --foreground red)
+		)
+	fi
 	[[ -z $@ ]] || echo -e "${c[error]}[error]${c[reset]}: $@" >&2
 	rm -f ${logfile}
 	exit 1
@@ -94,12 +94,15 @@ ${c[chapter]}Options:${c[reset]}
 		with no sound.
 	${c[param]}-c,--protect-content${c[reset]}
 		protects the contents of the sent message from forwarding and saving
+	${c[param]}-s,--socks5 <host[:port]>
+		use socks5 proxy for sent message.
+		if the port number is not specified, it is assumed at port 1080.
 	${c[param]}-i,--init${c[reset]}
 		init ~/.tsendrc
 	${c[param]}-h,--help${c[reset]}
-                show this help
-        ${c[param]}-V,--version${c[reset]}
-                show version
+		show this help
+	${c[param]}-V,--version${c[reset]}
+		show version
 "
 }
 
@@ -190,7 +193,8 @@ TBOT_TOKEN[default]=
 # TBOT_TOKEN[auth]="9843058035:AAFeZmxWS3BHZ_kIfwzF3Hov5yFPEMJZt3Y"
 
 # socks5 прокси
-# TBOT_SOCKS5="ip:port"
+# если порт не указан, то используется порт 1080
+# TBOT_SOCKS5="host[:port]"
 EOF
 }
 
@@ -202,16 +206,15 @@ if [[ -p /dev/stdin ]] ; then
 fi
 
 # обрабатываем параметры командной строки
-short_opts="hVB:T:C:d:a:P:t:p:v:W:H:Dc"
-long_opts="help,version,bot-server:,token:,chat-id:,document:,audio:,performer:,title:,photo:,video:,width:,height:,disable-notification,protect-content,init"
-opts=$(getopt -u -o ":${short_opts}" -l "${long_opts}" -- "$@" 2>/dev/null)
+short_opts="hVB:T:C:d:a:P:t:p:v:W:H:Dcs:"
+long_opts="help,version,bot-server:,token:,chat-id:,document:,audio:,performer:,title:,photo:,video:,width:,height:,disable-notification,protect-content,init,socks5:"
+getopt -u -o ":${short_opts}" -l "${long_opts}" -- "$@" 2>/dev/null | set --
 if [[ $? -gt 0 ]] ; then
-        IFS=$'\n'
-        errmsg=($(LANG=en getopt -u -o "${short_opts}" -l "${long_opts}" -- "$@" 2>&1 1>&-))
-        unset IFS
-        die "${errmsg[@]#getopt: }"
+	IFS=$'\n'
+	errmsg=($(LANG=en getopt -u -o "${short_opts}" -l "${long_opts}" -- "$@" 2>&1 1>&-))
+	unset IFS
+	die "${errmsg[@]#getopt: }"
 fi
-set -- ${opts}
 
 while (($#)) ; do
 	case "$1" in
@@ -300,6 +303,11 @@ while (($#)) ; do
 			_tbot_params+=( -Fthumbnail=@"$1" )
 			shift
 		;;
+		-s|--socks5)
+			shift
+			TBOT_SOCKS5="$1"
+			shift
+			;;
 		--)
 			shift
 		;;
